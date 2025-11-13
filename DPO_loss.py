@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 
-def dpo_loss(pi_w, pi_l, beta=0.1):
+def dpo_loss(pi_w, pi_l, beta=0.1, c2=0.01):
     """
     DPO 核心损失（变量极简版）
     输入：
@@ -29,7 +29,7 @@ def dpo_loss(pi_w, pi_l, beta=0.1):
     return total_loss
 
 
-if __name__ == "__mian__":
+if __name__ == "__main__":
     # 模拟batch_size=32的偏好数据（赢/输样本的log概率）
     batch_size = 32
     pi_w = torch.randn(batch_size)  # 赢样本log概率
