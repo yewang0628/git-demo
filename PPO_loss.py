@@ -79,3 +79,35 @@ if __name__ == "__main__":
     # 计算损失
     loss = ppo_loss(pi_new, pi_old, v_now, r, v_next)
     print("PPO总损失（GAE版）:", loss.item())
+
+#PPO
+import torch
+import torch.nn.functional as F
+
+def gae_advantage(v_now,v_next,r,gamma=0.99,gae_lambda=.95):
+    td_error=r+gamma*v_next-v_now
+    advantage=0.0
+    A=torch.zeros_like(td_error)
+    for t in reversed(range(len(td_error))):
+        advantage=td_error+gamma*gae_lambda*advantage
+        A[t]=advantage
+    A=(A-torch.mean(A))/(torch.std(A)+1e-8)
+    return A
+def ppo_loss(pi_new,pi_old,r,v_now,v_next,eps=0.2,c1=0.5,c2=0.01,gamma=0.99,gae_lambda=0.95)
+    A=gae_advantage(v_now,v_next,r,gamma,gae_lambda)
+    #策略损失
+    radio=torch.exp(pi_new-pi_old)
+    clamp_radio=torch.clamp(radio,1-eps,1+eps)
+    surr1=radio*A
+    surr2=clamp_radio*A
+    policy_loss=-torch.mean(torch.min(surr1,surr2))    
+
+    #价值损失
+    td_target=r+gamma*v_next
+    value_loss=c1*F.mse_loss(v_now,td_target)
+
+    #熵正则
+    entropy=-torch.mean(pi_new)
+    entropy_loss=-c2*entropy
+    total_loss=policy_loss+value_loss+entropy_loss
+    return total_loss
