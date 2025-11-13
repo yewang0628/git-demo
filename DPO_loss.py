@@ -20,8 +20,20 @@ def dpo_loss(pi_w, pi_l, beta=0.1):
     # 维度堆叠 不同于cat
     # 等价于 -log( exp(w_score) / (exp(w_score) + exp(l_score)) )
     logits = torch.stack([w_score, l_score], dim=1)
-    loss=-torch.mean(F.log_softmax(logits,dim=1)[:,0]) #只关注样本
-    
-    #熵正则
-    entorpy=-torch.mean(pi_w)
-    entorpy_loss=c2*
+    loss = -torch.mean(F.log_softmax(logits, dim=1)[:, 0])  # 只关注样本
+
+    # 熵正则
+    entorpy = -torch.mean(pi_w)
+    entorpy_loss = -c2 * entorpy
+    total_loss = entorpy_loss + loss
+    return total_loss
+
+
+if __name__ == "__mian__":
+    # 模拟batch_size=32的偏好数据（赢/输样本的log概率）
+    batch_size = 32
+    pi_w = torch.randn(batch_size)  # 赢样本log概率
+    pi_l = torch.randn(batch_size)  # 输样本log概率
+
+    loss = dpo_loss(pi_w, pi_l)
+    print("DPO损失:", loss.item())
